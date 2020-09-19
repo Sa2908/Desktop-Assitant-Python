@@ -1,5 +1,6 @@
 import pyttsx3
 import os
+import requests
 import smtplib
 import json
 import wikipedia
@@ -10,6 +11,7 @@ import speech_recognition as sr
 SECRETS = json.load(open("./SECRETS.json"))
 Google_pass = SECRETS['google']['password']
 Google_email = SECRETS['google']['email']
+news_api_key = SECRETS["newsapi"]
 def wishMe():
     hour = int(datetime.datetime.now().hour)
     if hour>=0 and hour<12:
@@ -24,6 +26,29 @@ def wishMe():
     speak("I am Jarvis Sir. Please tell me how may I help you")   
 
 
+def fetchNews():
+    url = 'http://newsapi.org/v2/top-headlines?apiKey={}'.format(news_api_key)
+    news = requests.get(url).text
+    c = 0 
+    news_dict = json.loads(news)
+    arts = news_dict['articles']
+    number  = news_dict['totalResults']
+    speak("Lets begin with the first news")
+    for article in arts:
+        c = c + 1
+        print(article['title'])
+        speak(article['title'])
+        print(article['description'])
+        speak(article['description'])
+        print(article['url'])
+        print()
+        speak("Refer the following link for more")
+        if c == number-1:
+            speak("That's it for today")
+        else:
+            speak("Moving on to the next news please Listen Carefully")
+
+    speak("Thanks for listening...")
 
 def speak(msg):
     engine = pyttsx3.init()
@@ -110,5 +135,8 @@ if __name__ == "__main__":
             except Exception as e:
                 print(e)
                 speak("Email was not able to be sent") 
+        
+        elif "news" in query:
+            fetchNews()
 	        
 
